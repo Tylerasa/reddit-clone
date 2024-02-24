@@ -1,9 +1,9 @@
-.nav-link:hover span {
+.hov-but:hover span {
   color: #4f46e5;
 }
 
 
-.nav-link:hover svg {
+.hov-but:hover svg {
     stroke: #4f46e5;
   }
   
