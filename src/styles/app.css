@@ -1,0 +1,12 @@
+.nav-link:hover span {
+  color: #4f46e5;
+}
+
+
+.nav-link:hover svg {
+    stroke: #4f46e5;
+  }
+  
+.feed{
+  padding-left: calc(50% - 850px/2);
+}
