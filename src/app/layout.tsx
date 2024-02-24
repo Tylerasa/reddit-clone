@@ -34,14 +34,14 @@ export default function RootLayout({
           <div className="flex flex-1 flex-col gap-1">
             <Link
               href={"/"}
-              className="hover:bg-nav-link-bg  nav-link flex w-full items-center gap-4 rounded-xl px-4 py-3"
+              className="hover:bg-gray-50  hov-but flex w-full items-center gap-4 rounded-xl px-4 py-3"
             >
               <Home stroke="#4B5563" className="h-5 w-5" />
               <span>Home</span>
             </Link>
             <Link
               href={"/login"}
-              className="hover:bg-nav-link-bg  nav-link flex w-full items-center gap-4 rounded-xl px-4 py-3"
+              className="hover:bg-gray-50  hov-but flex w-full items-center gap-4 rounded-xl px-4 py-3"
             >
               <Login stroke="#4B5563" />
               <span>Log in</span>
