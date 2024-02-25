@@ -8,7 +8,6 @@ import {
 async function Feed() {
     
     const posts = await api.post.getAll.query();
-    console.log("posts", posts);
 
   return (
     <>
