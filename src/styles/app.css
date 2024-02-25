@@ -10,3 +10,10 @@
 .feed{
   padding-left: calc(50% - 850px/2);
 }
+
+.word-clip {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  width: 100%;
+  overflow: hidden;
+} 
