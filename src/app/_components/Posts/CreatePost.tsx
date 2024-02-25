@@ -1,3 +1,4 @@
+"use client";
 import Image from "next/image";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
@@ -5,6 +6,7 @@ import person from "assets/images/person.png";
 import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 interface ICreatePost {
   imageUrl: string;
@@ -14,12 +16,19 @@ interface ICreatePost {
 export const CreatePost = (props: ICreatePost) => {
   const { username, imageUrl } = props;
 
-  const createPost = api.post.create.useMutation({
-    onSuccess: () => {},
-  });
-
+  const ctx = api.useUtils();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
+  const router = useRouter();
+
+  const createPost = api.post.create.useMutation({
+    onSuccess: () => {
+      router.refresh();
+
+      setContent("");
+      setTitle("");
+    },
+  });
 
   return (
     <div className="flex w-full gap-4 rounded-xl border border-gray-200  bg-white px-3 py-4 shadow-card-shadow">
@@ -49,18 +58,25 @@ export const CreatePost = (props: ICreatePost) => {
       >
         <div className="flex w-full flex-col gap-3 border-b border-b-gray-200 pb-3">
           <Input
+            value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title of your post"
             className="h-6 w-full border-none p-0 font-medium placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
           <Input
+            value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Share your thoughts with the world!"
             className="h-6 w-full border-none p-0 placeholder:text-gray-500  focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
         <div className="flex justify-end pt-3">
-          <Button className="bg-indigo-500 hover:bg-indigo-600">Post</Button>
+          <Button
+            disabled={createPost.isLoading}
+            className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-800/20"
+          >
+            Post
+          </Button>
         </div>
       </form>
     </div>
