@@ -1,15 +1,30 @@
 import React from "react";
 import { api } from "~/trpc/server";
-import { SingleFeedPost } from "../Posts/SingleFeedPost";
+import {
+  SingleFeedPost,
+  SkeletonSingleFeedPost,
+} from "../Posts/SingleFeedPost";
 
 async function Feed() {
-  const posts = await api.post.getAll.query();
+    
+    const posts = await api.post.getAll.query();
+    console.log("posts", posts);
 
   return (
     <>
-      {posts.map((post) => (
-        <SingleFeedPost {...post} key={post.post.id} />
-      ))}
+      {posts  ? (
+        <div className="">
+          {posts.map((post) => (
+            <SingleFeedPost {...post} key={post.post.id} />
+          ))}
+        </div>
+      ) : (
+        <div className="">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonSingleFeedPost key={i}/>
+          ))}
+        </div>
+      )}
     </>
   );
 }
