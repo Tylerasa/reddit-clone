@@ -22,6 +22,10 @@ export const postRouter = createTRPCRouter({
     const posts = await ctx.db.post.findMany({
       take: 100,
       orderBy: [{ createdAt: "desc" }],
+      include: {
+        votes: true,
+        comments: true,
+      },
     });
 
     const users = (
@@ -72,6 +76,156 @@ export const postRouter = createTRPCRouter({
         },
       });
       return post;
+    }),
+  addUpVote: privateProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+      const { postId } = input;
+
+      const existingVote = await ctx.db.vote.findFirst({
+        where: { postId, authorId },
+      });
+
+      if (existingVote?.value === -1) {
+        await ctx.db.vote.delete({
+          where: { id: existingVote.id },
+        });
+        await ctx.db.post.update({
+          where: { id: postId },
+          data: {
+            numDownvotes: { decrement: 1 },
+          },
+        });
+      }
+
+      await ctx.db.vote.create({
+        data: {
+          postId,
+          value: 1,
+          authorId,
+        },
+      });
+
+      return ctx.db.post.update({
+        where: { id: postId },
+        data: {
+          numUpvotes: {
+            increment: 1,
+          },
+        },
+      });
+    }),
+
+  removeUpVote: privateProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+
+      const { postId } = input;
+
+      await ctx.db.vote.deleteMany({
+        where: {
+          postId,
+          authorId,
+          value: 1,
+        },
+      });
+
+      return ctx.db.post.update({
+        where: { id: postId },
+        data: {
+          numUpvotes: {
+            decrement: 1,
+          },
+        },
+      });
+    }),
+
+  addDownVote: privateProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+      const { postId } = input;
+
+      const existingVote = await ctx.db.vote.findFirst({
+        where: { postId, authorId },
+      });
+      console.log("existingVote", existingVote);
+
+      if (existingVote?.value === 1) {
+        await ctx.db.vote.delete({
+          where: { id: existingVote.id },
+        });
+        await ctx.db.post.update({
+          where: { id: postId },
+          data: {
+            numUpvotes: { decrement: 1 },
+          },
+        });
+      }
+
+      await ctx.db.vote.create({
+        data: {
+          postId,
+          value: -1,
+          authorId,
+        },
+      });
+
+      return ctx.db.post.update({
+        where: { id: postId },
+        data: {
+          numDownvotes: {
+            increment: 1,
+          },
+        },
+      });
+    }),
+
+  removeDownVote: privateProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+
+      const { postId } = input;
+
+      const existingVote = await ctx.db.vote.findFirst({
+        where: { id: postId, authorId },
+      });
+
+      await ctx.db.vote.deleteMany({
+        where: {
+          postId,
+          authorId,
+          value: -1,
+        },
+      });
+
+      return ctx.db.post.update({
+        where: { id: postId },
+        data: {
+          numDownvotes: {
+            decrement: 1,
+          },
+        },
+      });
     }),
 
   getLatest: publicProcedure.query(({ ctx }) => {
