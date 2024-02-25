@@ -16,9 +16,40 @@ datasource db {
 
 model Post {
     id        Int      @id @default(autoincrement())
-    name      String
+    title     String
+    content   String
     createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    authorId  String
 
-    @@index([name])
+    numUpvotes   Int @default(0)
+    numDownvotes Int @default(0)
+
+    comments Comment[]
+
+    @@index([authorId])
+}
+
+model Comment {
+    id       Int    @id @default(autoincrement())
+    text     String
+    post     Post   @relation(fields: [postId], references: [id])
+    authorId String
+
+    numUpvotes   Int @default(0)
+    numDownvotes Int @default(0)
+
+    postId Int
+
+    userId Int
+
+    parent   Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+    parentId Int?
+
+    createdAt DateTime @default(now())
+
+    replies Comment[] @relation("CommentReplies")
+
+    @@index([postId])
+    @@index([authorId])
+    @@index([parentId])
 }
