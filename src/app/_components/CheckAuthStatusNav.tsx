@@ -7,7 +7,6 @@ import Link from "next/link";
 
 const CheckAuthStatusNav = () => {
   const user = useUser();
-  console.log("user", user);
   
   return (
     <>
