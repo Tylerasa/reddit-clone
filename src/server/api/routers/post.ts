@@ -273,11 +273,12 @@ export const postRouter = createTRPCRouter({
           .min(3, { message: "Comment has to be more than 3 characters" })
           .max(100, { message: "Comment has to be less than 100 characters" }),
         postId: z.number(),
+        commentId: z.number().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const authorId = ctx.userId;
-      const { text, postId } = input;
+      const { text, postId, commentId } = input;
 
       const comment = await ctx.db.comment.create({
         data: {
@@ -286,6 +287,17 @@ export const postRouter = createTRPCRouter({
           authorId,
         },
       });
+
+      if (commentId) {
+        await ctx.db.comment.update({
+          where: {
+            id: comment.id,
+          },
+          data: {
+            parentId: commentId,
+          },
+        });
+      }
 
       return comment;
     }),
@@ -307,7 +319,17 @@ export const postRouter = createTRPCRouter({
         orderBy: [{ createdAt: "desc" }],
         include: {
           votes: true,
-          replies: true,
+          replies: {
+            include: {
+              votes: true,
+              replies: {
+                include: {
+                  votes: true,
+                  replies: true,
+                },
+              },
+            },
+          },
         },
       });
 
@@ -320,6 +342,13 @@ export const postRouter = createTRPCRouter({
 
       return comments.map((comment) => {
         const author = users.find((user) => user.id === comment.authorId);
+        const replies = comment.replies.map((reply) => {
+          const replyAuthor = users.find((u) => u.id === reply.authorId);
+          return {
+            ...reply,
+            author: replyAuthor,
+          };
+        });
 
         if (!author) {
           throw new TRPCError({
@@ -329,7 +358,10 @@ export const postRouter = createTRPCRouter({
         }
 
         return {
-          comment,
+          comment: {
+            ...comment,
+            replies,
+          },
           author,
         };
       });
