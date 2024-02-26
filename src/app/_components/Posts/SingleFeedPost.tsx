@@ -9,6 +9,8 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { api } from "~/trpc/react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { toSnakeCase } from "~/helpers/snake-case";
 
 dayjs.extend(relativeTime);
 
@@ -16,7 +18,6 @@ type PostWithUser = RouterOutputs["post"]["getAll"][number];
 
 export const SingleFeedPost = (props: PostWithUser) => {
   const { author, post } = props;
-  console.log("post", post);
 
   const router = useRouter();
 
@@ -45,10 +46,8 @@ export const SingleFeedPost = (props: PostWithUser) => {
   });
 
   const hasVoted = post.votes.find((vote) => vote.authorId === author.id);
-  console.log("hasVoted", hasVoted);
 
   const handleVote = (value: number) => {
-    console.log("hasVoted?", hasVoted);
 
     if (hasVoted?.value === value) {
       // Remove vote
@@ -89,7 +88,10 @@ export const SingleFeedPost = (props: PostWithUser) => {
           />
         </div>
       </div>
-      <div className="flex flex-col gap-[6px]">
+      <Link
+        href={`/r/${author.username}/comments/${post.id}/${toSnakeCase(post.title)}`}
+        className="flex w-full cursor-pointer flex-col gap-[6px] bg-red-400"
+      >
         <div className="flex items-center gap-[6px]">
           {author && author.imageUrl ? (
             <Image
@@ -109,14 +111,14 @@ export const SingleFeedPost = (props: PostWithUser) => {
             />
           )}
 
-          <p className="text-sm lowercase text-gray-600">
-            Posted by {author?.username} {dayjs(post.createdAt).fromNow()}
+          <p className="text-sm  text-gray-600">
+            Posted by <span className="lowercase">{author?.username}</span> {dayjs(post.createdAt).fromNow()}
           </p>
         </div>
 
         <p className="font-medium ">{post.title}</p>
         <p className="text-sm leading-[20px]">{post.content}</p>
-      </div>
+      </Link>
     </div>
   );
 };
