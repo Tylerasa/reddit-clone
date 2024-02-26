@@ -77,6 +77,43 @@ export const postRouter = createTRPCRouter({
       });
       return post;
     }),
+
+  getSinglePost: privateProcedure
+    .input(
+      z.object({
+        postId: z.number(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const post = await ctx.db.post.findFirst({
+        where: {
+          id: input.postId,
+        },
+        include: {
+          votes: true,
+          comments: true,
+        },
+      });
+
+      const author = await clerkClient.users.getUser(ctx.userId);
+
+      if (!author) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Author for post not found. USER ID: ${ctx.userId}`,
+        });
+      }
+
+      return {
+        post,
+        author: {
+          id: author.id,
+          username: author.firstName,
+          imageUrl: author.imageUrl,
+        },
+      };
+    }),
+
   addUpVote: privateProcedure
     .input(
       z.object({
@@ -225,6 +262,76 @@ export const postRouter = createTRPCRouter({
             decrement: 1,
           },
         },
+      });
+    }),
+
+  comment: privateProcedure
+    .input(
+      z.object({
+        text: z
+          .string()
+          .min(3, { message: "Comment has to be more than 3 characters" })
+          .max(100, { message: "Comment has to be less than 100 characters" }),
+        postId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+      const { text, postId } = input;
+
+      const comment = await ctx.db.comment.create({
+        data: {
+          text,
+          postId,
+          authorId,
+        },
+      });
+
+      return comment;
+    }),
+
+  getComments: publicProcedure
+    .input(
+      z.object({
+        postId: z.number().optional(),
+        parentId: z.number().optional(),
+      }),
+    )
+
+    .query(async ({ ctx, input }) => {
+      const comments = await ctx.db.comment.findMany({
+        where: {
+          postId: input.postId,
+        },
+        take: 100,
+        orderBy: [{ createdAt: "desc" }],
+        include: {
+          votes: true,
+          replies: true,
+        },
+      });
+
+      const users = (
+        await clerkClient.users.getUserList({
+          userId: comments.map((comment) => comment.authorId),
+          limit: 100,
+        })
+      ).map(filteredUser);
+
+      return comments.map((comment) => {
+        const author = users.find((user) => user.id === comment.authorId);
+
+        if (!author) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Author for post not found. POST ID: ${comment.id}, USER ID: ${comment.authorId}`,
+          });
+        }
+
+        return {
+          comment,
+          author,
+        };
       });
     }),
 
