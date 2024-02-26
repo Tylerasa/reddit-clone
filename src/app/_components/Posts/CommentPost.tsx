@@ -10,12 +10,15 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { RouterOutputs } from "~/trpc/shared";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { ReplyComment } from "../Comments/ReplyComment";
 
 dayjs.extend(relativeTime);
 
 type Comment = RouterOutputs["post"]["getComments"][number];
+type Reply = RouterOutputs["post"]['getComments'][number]['comment']['replies'][number]
 
-export const CommentPost = (props: Comment) => {
+
+export const CommentPost = (props: Comment ) => {
   const { comment, author } = props;
 
   const [showReplyForm, setShowReplyForm] = useState(false);
@@ -72,9 +75,13 @@ export const CommentPost = (props: Comment) => {
           </div>
         </div>
       </div>
+      {comment.replies.length > 0
+        ? comment.replies.map((reply) => <ReplyComment {...reply} />)
+        : null}
       {showReplyForm ? (
         <div className="mt-6">
           <ReplyPost
+            commentId={comment.id}
             postId={comment.postId}
             imageUrl={author.imageUrl}
             username={author.username}
@@ -88,14 +95,6 @@ export const CommentPost = (props: Comment) => {
 export const CommentPostSkeleton = () => {
   return (
     <div className="flex w-full gap-4 border-b border-b-gray-200 py-6">
-      {/* <div className="">
-        <div className="flex flex-col items-center gap-[10px] ">
-          <Skeleton className="h-4 w-4" />
-          <Skeleton className="h-6 w-7" />
-
-          <Skeleton className="h-4 w-4" />
-        </div>
-      </div> */}
       <div className="flex w-full flex-col gap-[6px]">
         <div className="flex items-center gap-[6px]">
           <Skeleton className="h-6 w-6 rounded-full" />
