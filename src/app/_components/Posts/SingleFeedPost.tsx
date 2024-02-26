@@ -90,7 +90,7 @@ export const SingleFeedPost = (props: PostWithUser) => {
       </div>
       <Link
         href={`/r/${author.username}/comments/${post.id}/${toSnakeCase(post.title)}`}
-        className="flex w-full cursor-pointer flex-col gap-[6px] bg-red-400"
+        className="flex w-full cursor-pointer flex-col gap-[6px]"
       >
         <div className="flex items-center gap-[6px]">
           {author && author.imageUrl ? (
