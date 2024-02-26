@@ -16,7 +16,6 @@ interface ICreatePost {
 export const CreatePost = (props: ICreatePost) => {
   const { username, imageUrl } = props;
 
-  const ctx = api.useUtils();
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const router = useRouter();
