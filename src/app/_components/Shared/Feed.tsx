@@ -6,12 +6,11 @@ import {
 } from "../Posts/SingleFeedPost";
 
 async function Feed() {
-    
-    const posts = await api.post.getAll.query();
+  const posts = await api.post.getAll.query();
 
   return (
     <>
-      {posts  ? (
+      {posts ? (
         <div className="">
           {posts.map((post) => (
             <SingleFeedPost {...post} key={post.post.id} />
@@ -20,10 +19,16 @@ async function Feed() {
       ) : (
         <div className="">
           {Array.from({ length: 3 }).map((_, i) => (
-            <SkeletonSingleFeedPost key={i}/>
+            <SkeletonSingleFeedPost key={i} />
           ))}
         </div>
       )}
+
+      {posts && posts.length === 0 ? (
+        <p className="pt-4 text-center text-sm text-gray-700 ">
+          No posts yet...
+        </p>
+      ) : null}
     </>
   );
 }
