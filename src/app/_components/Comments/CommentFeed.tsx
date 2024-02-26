@@ -33,6 +33,9 @@ function CommentFeed() {
           ))}
         </div>
       )}
+      {!isLoading && comments.length === 0 ? (
+        <p className="text-center text-sm text-gray-700 ">No comments under this post...</p>
+      ) : null}
     </>
   );
 }
