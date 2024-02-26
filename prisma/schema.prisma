@@ -11,8 +11,8 @@ datasource db {
 
 model Post {
   id           Int       @id @default(autoincrement())
-  title        String
-  content      String
+  title        String    @db.VarChar(100)
+  content      String    @db.VarChar(280)
   createdAt    DateTime  @default(now())
   authorId     String
   numDownvotes Int       @default(0)
@@ -25,7 +25,7 @@ model Post {
 
 model Comment {
   id           Int       @id @default(autoincrement())
-  text         String
+  text         String    @db.VarChar(280)
   authorId     String
   postId       Int
   parentId     Int?
