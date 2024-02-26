@@ -80,19 +80,21 @@ export const CommentPost = (props: Comment) => {
   );
 
   const handleReplyClick = () => {
-    setShowReplyForm(!showReplyForm);
+setShowReplyForm(!showReplyForm);
+
     if (ref && ref.current) {
       ref.current.click();
     }
   };
 
   return (
-    <Accordion type="single" collapsible>
+    <Accordion type="single" collapsible >
       <AccordionItem value={`item-${comment.id}`} className="">
         <div className="pb-4">
           <div className="flex w-full gap-4 border-b pb-4">
             <div className="flex w-full flex-col gap-3">
-              <AccordionTrigger ref={ref} className="flex flex-col gap-3">
+              <AccordionTrigger ref={ref}></AccordionTrigger>
+              <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-[6px]">
                   {author && author.imageUrl ? (
                     <Image
@@ -121,7 +123,7 @@ export const CommentPost = (props: Comment) => {
                 <p className="text-left text-sm leading-[20px] text-gray-800">
                   {comment.text}
                 </p>
-              </AccordionTrigger>
+              </div>
 
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <ChevronUp
