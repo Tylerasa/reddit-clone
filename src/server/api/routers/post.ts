@@ -320,12 +320,17 @@ export const postRouter = createTRPCRouter({
         include: {
           votes: true,
           replies: {
+            orderBy: { createdAt: "desc" },
             include: {
-              votes: true,
               replies: {
                 include: {
                   votes: true,
-                  replies: true,
+                  replies: {
+                    include: {
+                      votes: true,
+                      replies: true,
+                    },
+                  },
                 },
               },
             },
@@ -364,6 +369,157 @@ export const postRouter = createTRPCRouter({
           },
           author,
         };
+      });
+    }),
+
+  addUpVoteComment: privateProcedure
+    .input(
+      z.object({
+        commentId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+      const { commentId } = input;
+
+      const existingVote = await ctx.db.vote.findFirst({
+        where: { commentId, authorId },
+      });
+
+      if (existingVote?.value === -1) {
+        await ctx.db.vote.delete({
+          where: { id: existingVote.id },
+        });
+        await ctx.db.comment.update({
+          where: { id: commentId },
+          data: {
+            numDownvotes: { decrement: 1 },
+          },
+        });
+      }
+
+      await ctx.db.vote.create({
+        data: {
+          commentId,
+          value: 1,
+          authorId,
+        },
+      });
+
+      return ctx.db.comment.update({
+        where: { id: commentId },
+        data: {
+          numUpvotes: {
+            increment: 1,
+          },
+        },
+      });
+    }),
+
+  removeUpVoteComment: privateProcedure
+    .input(
+      z.object({
+        commentId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+
+      const { commentId } = input;
+
+      await ctx.db.vote.deleteMany({
+        where: {
+          commentId,
+          authorId,
+          value: 1,
+        },
+      });
+
+      return ctx.db.post.update({
+        where: { id: commentId },
+        data: {
+          numUpvotes: {
+            decrement: 1,
+          },
+        },
+      });
+    }),
+
+  addDownVoteComment: privateProcedure
+    .input(
+      z.object({
+        commentId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+      const { commentId } = input;
+
+      const existingVote = await ctx.db.vote.findFirst({
+        where: { commentId, authorId },
+      });
+      console.log("existingVote", existingVote);
+
+      if (existingVote?.value === 1) {
+        await ctx.db.vote.delete({
+          where: { id: existingVote.id },
+        });
+        await ctx.db.post.update({
+          where: { id: commentId },
+          data: {
+            numUpvotes: { decrement: 1 },
+          },
+        });
+      }
+
+      await ctx.db.vote.create({
+        data: {
+          commentId,
+          value: -1,
+          authorId,
+        },
+      });
+
+      return ctx.db.post.update({
+        where: { id: commentId },
+        data: {
+          numDownvotes: {
+            increment: 1,
+          },
+        },
+      });
+    }),
+
+  removeDownVoteComment: privateProcedure
+    .input(
+      z.object({
+        commentId: z.number(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.userId;
+
+      const { commentId } = input;
+
+      const existingVote = await ctx.db.vote.findFirst({
+        where: { id: commentId, authorId },
+      });
+
+      await ctx.db.vote.deleteMany({
+        where: {
+          commentId,
+          authorId,
+          value: -1,
+        },
+      });
+
+      return ctx.db.post.update({
+        where: { id: commentId },
+        data: {
+          numDownvotes: {
+            decrement: 1,
+          },
+        },
       });
     }),
 
