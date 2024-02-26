@@ -24,7 +24,7 @@ export const ReplyComment = (props: Reply) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
 
   return (
-    <div className="py-4 pb-6 pl-[32px]">
+    <div className="pt-4 pl-[32px]">
       <div className="flex w-full gap-4">
         <div className="flex flex-col gap-[6px]">
           <div className="flex items-center gap-[6px]">
@@ -75,9 +75,6 @@ export const ReplyComment = (props: Reply) => {
           </div>
         </div>
       </div>
-      {subReplies.length > 0
-        ? subReplies.map((r) => <ReplyComment {...r} />)
-        : null}
       {showReplyForm ? (
         <div className="mt-6">
           <ReplyPost
@@ -88,6 +85,9 @@ export const ReplyComment = (props: Reply) => {
           />
         </div>
       ) : null}
+      {/* {subReplies.length > 0
+        ? subReplies.map((r) => <ReplyComment {...r} />)
+        : null} */}
     </div>
   );
 };
