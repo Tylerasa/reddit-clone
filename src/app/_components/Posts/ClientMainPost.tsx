@@ -79,7 +79,7 @@ const ClientMainPost = (props: PostWithUser) => {
               {post ? post.numUpvotes - post.numDownvotes : "0"}
             </span>
             <ChevronDown
-              onClick={() => handleVote(1)}
+              onClick={() => handleVote(-1)}
               className={`h-5 w-5 cursor-pointer hover:stroke-indigo-600
               ${hasVoted?.value === -1 ? "stroke-indigo-600 " : "stroke-gray-700"}
              `}
