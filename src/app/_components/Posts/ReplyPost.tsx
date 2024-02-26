@@ -16,11 +16,15 @@ const ReplyPost = (props: {
   const { postId, imageUrl, username, commentId } = props;
   const [text, setText] = useState("");
 
+  const router = useRouter();
   const utils = api.useUtils();
 
   const comment = api.post.comment.useMutation({
     onSuccess: () => {
-      utils.post.getComments.invalidate()
+      // router.refresh();
+      utils.post.getComments.invalidate({
+        postId,
+      });
 
       setText("");
     },
