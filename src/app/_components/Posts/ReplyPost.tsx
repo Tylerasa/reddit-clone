@@ -9,16 +9,19 @@ import { api } from "~/trpc/react";
 
 const ReplyPost = (props: {
   postId: number;
+  commentId?: number;
   imageUrl: string;
   username: string | null;
 }) => {
-  const { postId, imageUrl, username } = props;
+  const { postId, imageUrl, username, commentId } = props;
   const [text, setText] = useState("");
-  const router = useRouter();
+
+  const utils = api.useUtils();
 
   const comment = api.post.comment.useMutation({
     onSuccess: () => {
-      router.refresh();
+      utils.post.getComments.invalidate()
+
       setText("");
     },
   });
@@ -34,7 +37,7 @@ const ReplyPost = (props: {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          comment.mutate({ text, postId });
+          comment.mutate({ text, postId, commentId });
         }}
         className="w-full"
       >
