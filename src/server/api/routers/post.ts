@@ -255,7 +255,7 @@ export const postRouter = createTRPCRouter({
         },
       });
 
-      return ctx.db.post.update({
+      return ctx.db.comment.update({
         where: { id: postId },
         data: {
           numDownvotes: {
@@ -435,7 +435,7 @@ export const postRouter = createTRPCRouter({
         },
       });
 
-      return ctx.db.post.update({
+      return ctx.db.comment.update({
         where: { id: commentId },
         data: {
           numUpvotes: {
@@ -480,7 +480,7 @@ export const postRouter = createTRPCRouter({
         },
       });
 
-      return ctx.db.post.update({
+      return ctx.db.comment.update({
         where: { id: commentId },
         data: {
           numDownvotes: {
@@ -513,7 +513,7 @@ export const postRouter = createTRPCRouter({
         },
       });
 
-      return ctx.db.post.update({
+      return ctx.db.comment.update({
         where: { id: commentId },
         data: {
           numDownvotes: {
