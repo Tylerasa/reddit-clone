@@ -15,7 +15,6 @@ type PostWithUser = RouterOutputs["post"]["getAll"][number];
 
 const ClientMainPost = (props: PostWithUser) => {
   const { post, author } = props;
-  console.log("{ post, author }", { post, author });
 
   const router = useRouter();
 
