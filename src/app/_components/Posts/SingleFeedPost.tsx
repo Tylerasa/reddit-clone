@@ -12,6 +12,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toSnakeCase } from "~/helpers/snake-case";
 import { useState } from "react";
+import { clerkClient, redirectToSignIn, useClerk, useUser } from "@clerk/nextjs";
+import { toast } from "sonner";
 
 dayjs.extend(relativeTime);
 
@@ -20,12 +22,14 @@ type Vote = RouterOutputs["post"]["getAll"][number]["post"]["votes"];
 
 export const SingleFeedPost = (props: PostWithUser) => {
   const { author, post } = props;
-
+  const user = useUser();
 
   const hasVoted = post.votes.find((vote) => vote.authorId === author.id);
 
   const [postState, setPostState] = useState(post);
-  const [optHasVoted, setOptHasVoted] = useState<number | null>(hasVoted?.value?? null);
+  const [optHasVoted, setOptHasVoted] = useState<number | null>(
+    hasVoted?.value ?? null,
+  );
 
   const router = useRouter();
 
@@ -54,27 +58,18 @@ export const SingleFeedPost = (props: PostWithUser) => {
   });
 
 
-  // const handleVote = (value: number) => {
 
-  //   if (hasVoted?.value === value) {
-  //     // Remove vote
-  //     if (value === 1) {
-  //       return removeUpVote.mutate({ postId: post.id });
-  //     } else {
-  //       return removeDownVote.mutate({ postId: post.id });
-  //     }
-  //   } else {
-  //     // Add vote
-  //     if (value === 1) {
-  //       return addUpVote.mutate({ postId: post.id });
-  //     } else {
-  //       return addDownVote.mutate({ postId: post.id });
-  //     }
-  //   }
-  // };
-  console.log("posts", post);
 
   const handleVote = (value: number) => {
+    if (!user.user || user.isSignedIn) {
+      toast("Sign in to upvote or down", {
+        action: {
+          label: "Login",
+          onClick: () => window.location.href = "/login" 
+        },
+      });
+      return;
+    }
     let newPost = { ...postState };
 
     // Optimistically update UI
@@ -171,7 +166,7 @@ export const SingleFeedPost = (props: PostWithUser) => {
           <span className="font-medium text-gray-800">
             {postState.numUpvotes - postState.numDownvotes}
           </span>
-          <div className="h-6 flex items-center">
+          <div className="flex h-6 items-center">
             <ChevronDown
               onClick={() => handleVote(-1)}
               className={`: cursor-pointer hover:stroke-indigo-600
