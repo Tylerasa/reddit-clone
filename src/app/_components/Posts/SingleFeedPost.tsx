@@ -21,8 +21,11 @@ type Vote = RouterOutputs["post"]["getAll"][number]["post"]["votes"];
 export const SingleFeedPost = (props: PostWithUser) => {
   const { author, post } = props;
 
+
+  const hasVoted = post.votes.find((vote) => vote.authorId === author.id);
+
   const [postState, setPostState] = useState(post);
-  const [optHasVoted, setOptHasVoted] = useState<number | null>(null);
+  const [optHasVoted, setOptHasVoted] = useState<number | null>(hasVoted?.value?? null);
 
   const router = useRouter();
 
@@ -50,9 +53,6 @@ export const SingleFeedPost = (props: PostWithUser) => {
     },
   });
 
-  const hasVoted = post.votes.find((vote) => vote.authorId === author.id);
-
-  console.log("inside", optHasVoted);
 
   // const handleVote = (value: number) => {
 
@@ -104,7 +104,7 @@ export const SingleFeedPost = (props: PostWithUser) => {
         );
         if (existingVoteIndex !== -1) {
           newPost.numDownvotes -= 1;
-          newPost.votes.splice(existingVoteIndex, 1); 
+          newPost.votes.splice(existingVoteIndex, 1);
         }
 
         newPost.numUpvotes += 1;
@@ -114,14 +114,14 @@ export const SingleFeedPost = (props: PostWithUser) => {
           postId: Math.random(),
           authorId: author.id,
           value: 1,
-        }); 
+        });
       } else {
         let existingVoteIndex = newPost.votes.findIndex(
           (v) => v.value === 1 && v.authorId === author.id,
         );
         if (existingVoteIndex !== -1) {
           newPost.numUpvotes -= 1;
-          newPost.votes.splice(existingVoteIndex, 1); 
+          newPost.votes.splice(existingVoteIndex, 1);
         }
         newPost.numDownvotes += 1;
         newPost.votes.push({
@@ -130,12 +130,12 @@ export const SingleFeedPost = (props: PostWithUser) => {
           postId: Math.random(),
           authorId: author.id,
           value: -1,
-        }); 
+        });
       }
       setOptHasVoted(value);
     }
 
-    setPostState(newPost); // Update the post state
+    setPostState(newPost);
 
     // Then send the mutation
     if (hasVoted?.value === value) {
@@ -158,23 +158,27 @@ export const SingleFeedPost = (props: PostWithUser) => {
   return (
     <div className="flex w-full gap-4 border-b border-b-gray-200 py-10">
       <div className="">
-        <div className="flex flex-col items-center gap-[10px] ">
-          <ChevronUp
-            onClick={() => handleVote(1)}
-            className={`: cursor-pointer hover:stroke-indigo-600
+        <div className="flex flex-col items-center gap-[6px] ">
+          <div className="flex h-6 items-center">
+            <ChevronUp
+              onClick={() => handleVote(1)}
+              className={`: cursor-pointer hover:stroke-indigo-600
           ${optHasVoted === 1 ? "stroke-indigo-600 " : "stroke-gray-700"}
           `}
-          />
+            />
+          </div>
 
           <span className="font-medium text-gray-800">
             {postState.numUpvotes - postState.numDownvotes}
           </span>
-          <ChevronDown
-            onClick={() => handleVote(-1)}
-            className={`: cursor-pointer hover:stroke-indigo-600
+          <div className="h-6 flex items-center">
+            <ChevronDown
+              onClick={() => handleVote(-1)}
+              className={`: cursor-pointer hover:stroke-indigo-600
             ${optHasVoted === -1 ? "stroke-indigo-600 " : "stroke-gray-700"}
             `}
-          />
+            />
+          </div>
         </div>
       </div>
       <Link
