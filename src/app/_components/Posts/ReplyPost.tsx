@@ -21,12 +21,10 @@ const ReplyPost = (props: {
 
   const comment = api.post.comment.useMutation({
     onSuccess: () => {
-      // router.refresh();
-      utils.post.getComments.invalidate({
-        postId,
-      });
-
       setText("");
+      utils.post.getComments.invalidate({postId})
+      router.refresh();
+
     },
   });
   return (
@@ -49,7 +47,7 @@ const ReplyPost = (props: {
           <Input
             onChange={(e) => setText(e.target.value)}
             value={text}
-            placeholder="Share your thoughts with the world!"
+            placeholder="Comment your thoughts"
             className="h-6 w-full border-none p-0 placeholder:text-gray-500  focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
