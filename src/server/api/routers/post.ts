@@ -200,7 +200,6 @@ export const postRouter = createTRPCRouter({
       const existingVote = await ctx.db.vote.findFirst({
         where: { postId, authorId },
       });
-      console.log("existingVote", existingVote);
 
       if (existingVote?.value === 1) {
         await ctx.db.vote.delete({
@@ -244,7 +243,7 @@ export const postRouter = createTRPCRouter({
       const { postId } = input;
 
       const existingVote = await ctx.db.vote.findFirst({
-        where: { id: postId, authorId },
+        where: { postId, authorId },
       });
 
       await ctx.db.vote.deleteMany({
@@ -255,7 +254,7 @@ export const postRouter = createTRPCRouter({
         },
       });
 
-      return ctx.db.comment.update({
+      return ctx.db.post.update({
         where: { id: postId },
         data: {
           numDownvotes: {
@@ -322,6 +321,7 @@ export const postRouter = createTRPCRouter({
           replies: {
             orderBy: { createdAt: "desc" },
             include: {
+              votes: true,
               replies: {
                 include: {
                   votes: true,
@@ -371,6 +371,7 @@ export const postRouter = createTRPCRouter({
         };
       });
     }),
+
 
   addUpVoteComment: privateProcedure
     .input(
@@ -464,7 +465,7 @@ export const postRouter = createTRPCRouter({
         await ctx.db.vote.delete({
           where: { id: existingVote.id },
         });
-        await ctx.db.post.update({
+        await ctx.db.comment.update({
           where: { id: commentId },
           data: {
             numUpvotes: { decrement: 1 },
@@ -502,7 +503,7 @@ export const postRouter = createTRPCRouter({
       const { commentId } = input;
 
       const existingVote = await ctx.db.vote.findFirst({
-        where: { id: commentId, authorId },
+        where: { commentId, authorId },
       });
 
       await ctx.db.vote.deleteMany({
