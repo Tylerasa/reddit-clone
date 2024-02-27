@@ -61,13 +61,10 @@ export const SingleFeedPost = (props: PostWithUser) => {
 
 
   const handleVote = (value: number) => {
-    if (!user.user || user.isSignedIn) {
-      toast("Sign in to upvote or down", {
-        action: {
-          label: "Login",
-          onClick: () => window.location.href = "/login" 
-        },
-      });
+    if (!user.user || !user.isSignedIn) {
+      toast("Sign in to upvote or down"
+      
+      );
       return;
     }
     let newPost = { ...postState };
