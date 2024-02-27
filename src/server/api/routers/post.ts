@@ -372,7 +372,6 @@ export const postRouter = createTRPCRouter({
       });
     }),
 
-
   addUpVoteComment: privateProcedure
     .input(
       z.object({
@@ -524,9 +523,42 @@ export const postRouter = createTRPCRouter({
       });
     }),
 
-  getLatest: publicProcedure.query(({ ctx }) => {
-    return ctx.db.post.findFirst({
-      orderBy: { createdAt: "desc" },
+  getAllUserPosts: privateProcedure.query(async ({ ctx }) => {
+    const authorId = ctx.userId;
+
+    const posts = await ctx.db.post.findMany({
+      take: 100,
+      orderBy: [{ createdAt: "desc" }],
+      where: {
+        authorId,
+      },
+      include: {
+        votes: true,
+        comments: true,
+      },
+    });
+
+    const users = (
+      await clerkClient.users.getUserList({
+        userId: posts.map((post) => post.authorId),
+        limit: 100,
+      })
+    ).map(filteredUser);
+
+    return posts.map((post) => {
+      const author = users.find((user) => user.id === post.authorId);
+
+      if (!author) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: `Author for post not found. POST ID: ${post.id}, USER ID: ${post.authorId}`,
+        });
+      }
+
+      return {
+        post,
+        author,
+      };
     });
   }),
 });
