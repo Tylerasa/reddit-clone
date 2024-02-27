@@ -11,13 +11,18 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toSnakeCase } from "~/helpers/snake-case";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 
 type PostWithUser = RouterOutputs["post"]["getAll"][number];
+type Vote = RouterOutputs["post"]["getAll"][number]["post"]["votes"];
 
 export const SingleFeedPost = (props: PostWithUser) => {
   const { author, post } = props;
+
+  const [postState, setPostState] = useState(post);
+  const [optHasVoted, setOptHasVoted] = useState<number | null>(null);
 
   const router = useRouter();
 
@@ -47,21 +52,105 @@ export const SingleFeedPost = (props: PostWithUser) => {
 
   const hasVoted = post.votes.find((vote) => vote.authorId === author.id);
 
-  const handleVote = (value: number) => {
+  console.log("inside", optHasVoted);
 
+  // const handleVote = (value: number) => {
+
+  //   if (hasVoted?.value === value) {
+  //     // Remove vote
+  //     if (value === 1) {
+  //       return removeUpVote.mutate({ postId: post.id });
+  //     } else {
+  //       return removeDownVote.mutate({ postId: post.id });
+  //     }
+  //   } else {
+  //     // Add vote
+  //     if (value === 1) {
+  //       return addUpVote.mutate({ postId: post.id });
+  //     } else {
+  //       return addDownVote.mutate({ postId: post.id });
+  //     }
+  //   }
+  // };
+  console.log("posts", post);
+
+  const handleVote = (value: number) => {
+    let newPost = { ...postState };
+
+    // Optimistically update UI
+    if (optHasVoted === value) {
+      if (value === 1) {
+        newPost.numUpvotes -= 1;
+        let existingVoteIndex = newPost.votes.findIndex(
+          (v) => v.value === 1 && v.authorId === author.id,
+        );
+        if (existingVoteIndex !== -1) {
+          newPost.votes.splice(existingVoteIndex, 1);
+        }
+      } else {
+        newPost.numDownvotes -= 1;
+        let existingVoteIndex = newPost.votes.findIndex(
+          (v) => v.value === -1 && v.authorId === author.id,
+        );
+        if (existingVoteIndex !== -1) {
+          newPost.votes.splice(existingVoteIndex, 1);
+        }
+      }
+      setOptHasVoted(null);
+    } else {
+      if (value === 1) {
+        let existingVoteIndex = newPost.votes.findIndex(
+          (v) => v.value === -1 && v.authorId === author.id,
+        );
+        if (existingVoteIndex !== -1) {
+          newPost.numDownvotes -= 1;
+          newPost.votes.splice(existingVoteIndex, 1); 
+        }
+
+        newPost.numUpvotes += 1;
+        newPost.votes.push({
+          id: Math.random(),
+          commentId: Math.random(),
+          postId: Math.random(),
+          authorId: author.id,
+          value: 1,
+        }); 
+      } else {
+        let existingVoteIndex = newPost.votes.findIndex(
+          (v) => v.value === 1 && v.authorId === author.id,
+        );
+        if (existingVoteIndex !== -1) {
+          newPost.numUpvotes -= 1;
+          newPost.votes.splice(existingVoteIndex, 1); 
+        }
+        newPost.numDownvotes += 1;
+        newPost.votes.push({
+          id: Math.random(),
+          commentId: Math.random(),
+          postId: Math.random(),
+          authorId: author.id,
+          value: -1,
+        }); 
+      }
+      setOptHasVoted(value);
+    }
+
+    setPostState(newPost); // Update the post state
+
+    // Then send the mutation
     if (hasVoted?.value === value) {
       // Remove vote
       if (value === 1) {
-        return removeUpVote.mutate({ postId: post.id });
+        return removeUpVote.mutate({ postId: post!.id });
       } else {
-        return removeDownVote.mutate({ postId: post.id });
+        return removeDownVote.mutate({ postId: post!.id });
       }
     } else {
       // Add vote
       if (value === 1) {
-        return addUpVote.mutate({ postId: post.id });
+        return addUpVote.mutate({ postId: post!.id });
       } else {
-        return addDownVote.mutate({ postId: post.id });
+        return addDownVote.mutate({ postId: post!.id });
       }
     }
   };
@@ -73,23 +162,23 @@ export const SingleFeedPost = (props: PostWithUser) => {
           <ChevronUp
             onClick={() => handleVote(1)}
             className={`: cursor-pointer hover:stroke-indigo-600
-          ${hasVoted?.value === 1 ? "stroke-indigo-600 " : "stroke-gray-700"}
+          ${optHasVoted === 1 ? "stroke-indigo-600 " : "stroke-gray-700"}
           `}
           />
 
           <span className="font-medium text-gray-800">
-            {post.numUpvotes - post.numDownvotes}
+            {postState.numUpvotes - postState.numDownvotes}
           </span>
           <ChevronDown
             onClick={() => handleVote(-1)}
             className={`: cursor-pointer hover:stroke-indigo-600
-            ${hasVoted?.value === -1 ? "stroke-indigo-600 " : "stroke-gray-700"}
+            ${optHasVoted === -1 ? "stroke-indigo-600 " : "stroke-gray-700"}
             `}
           />
         </div>
       </div>
       <Link
-        href={`/r/${author.username}/comments/${post.id}/${toSnakeCase(post.title)}`}
+        href={`/r/${author.username}/comments/${postState.id}/${toSnakeCase(postState.title)}`}
         className="flex w-full cursor-pointer flex-col gap-[6px]"
       >
         <div className="flex items-center gap-[6px]">
@@ -112,12 +201,13 @@ export const SingleFeedPost = (props: PostWithUser) => {
           )}
 
           <p className="text-sm  text-gray-600">
-            Posted by <span className="lowercase">{author?.username}</span> {dayjs(post.createdAt).fromNow()}
+            Posted by <span className="lowercase">{author?.username}</span>{" "}
+            {dayjs(postState.createdAt).fromNow()}
           </p>
         </div>
 
-        <p className="font-medium ">{post.title}</p>
-        <p className="text-sm leading-[20px]">{post.content}</p>
+        <p className="font-medium ">{postState.title}</p>
+        <p className="text-sm leading-[20px]">{postState.content}</p>
       </Link>
     </div>
   );
