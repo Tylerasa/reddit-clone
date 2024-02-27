@@ -54,4 +54,6 @@ model Vote {
   @@index([postId])
   @@index([commentId])
   @@index([authorId])
+  @@unique([authorId, postId])
+
 }
