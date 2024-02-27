@@ -2,13 +2,12 @@
   color: #4f46e5;
 }
 
-
 .hov-but:hover svg {
-    stroke: #4f46e5;
-  }
-  
-.feed{
-  padding-left: calc(50% - 850px/2);
+  stroke: #4f46e5;
+}
+
+.feed {
+  padding-left: calc(50% - 850px / 2);
 }
 
 .word-clip {
@@ -16,7 +15,10 @@
   white-space: nowrap;
   width: 100%;
   overflow: hidden;
-} 
+}
+[data-sonner-toast] [data-button] {
+  background: #6366F1 !important;
+}
 
 /* for debugging */
 /* *{
