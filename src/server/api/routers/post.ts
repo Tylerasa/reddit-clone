@@ -130,7 +130,7 @@ export const postRouter = createTRPCRouter({
 
       if (existingVote?.value === -1) {
         await ctx.db.vote.delete({
-          where: { id: existingVote.id },
+          where: { id: existingVote.id, authorId },
         });
         await ctx.db.post.update({
           where: { id: postId },
