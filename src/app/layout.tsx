@@ -7,6 +7,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 
 import { ClerkProvider } from "@clerk/nextjs";
 import SideNav from "./_components/Shared/SideNav";
+import { Toaster } from "~/components/ui/sonner";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,6 +33,10 @@ export default function RootLayout({
         >
           <SideNav />
           <TRPCReactProvider>{children}</TRPCReactProvider>
+          <Toaster
+            expand={true}
+            position="top-center"
+          />
         </body>
       </html>
     </ClerkProvider>
