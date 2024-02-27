@@ -17,3 +17,8 @@
   width: 100%;
   overflow: hidden;
 } 
+
+/* for debugging */
+/* *{
+  border: 1px solid red;
+} */
