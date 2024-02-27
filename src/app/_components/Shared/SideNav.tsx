@@ -7,16 +7,18 @@ import Image from "next/image";
 import { SignOutButton, useUser } from "@clerk/nextjs";
 import CheckAuthStatusNav from "../CheckAuthStatusNav";
 import { Login } from "assets/svgs/Login";
+import { usePathname } from "next/navigation";
 
 const SideNav = () => {
   const { user } = useUser();
+  const pathname = usePathname();
 
   return (
     <aside className="flex h-screen w-[17.313rem] flex-col overflow-y-auto border-r border-r-gray-200 p-4 font-medium text-gray-700">
       <div className="flex flex-1 flex-col gap-1">
         <Link
           href={"/"}
-          className={`hov-but  flex w-full items-center gap-4 rounded-xl bg-gray-50 px-4 py-3 text-indigo-500 hover:bg-gray-50`}
+          className={`hov-but  flex w-full items-center gap-4 rounded-xl ${pathname !== "/my-posts" ? "bg-gray-50 " : ""} px-4 py-3 text-indigo-500 hover:bg-gray-50`}
         >
           <Home className="h-5 w-5 stroke-indigo-600" />
           <span>Home</span>
