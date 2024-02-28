@@ -1,6 +1,6 @@
 import { ChevronUp } from "assets/svgs/ChevronUp";
 import Image from "next/image";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import person from "assets/images/person.png";
 import { api } from "~/trpc/react";
 
@@ -50,6 +50,19 @@ const ClientMainPost = (props: PostWithUser) => {
       router.refresh();
     },
   });
+  useEffect(() => {
+    if (clerkUser && clerkUser.user) {
+      setHasVoted(
+        post.votes.find((vote) => vote.authorId === clerkUser.user.id),
+      );
+
+      setUser(user);
+    }
+  }, [clerkUser]);
+
+  useEffect(() => {
+    setOptHasVoted(hasVoted);
+  }, [clerkUser, hasVoted]);
 
   const handleVote = (value: number) => {
     let newPost = { ...postState };
