@@ -91,7 +91,6 @@ export const SingleFeedPost = (props: PostWithUser) => {
           newPost.votes.splice(existingVoteIndex, 1);
         }
       } else {
-        // if(newPost.numUpvotes - newPost.numDownvotes)
         newPost.numDownvotes -= 1;
         let existingVoteIndex = newPost.votes.findIndex(
           (v) => v.value === -1 && v.authorId === clerkUser.user.id,
