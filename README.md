@@ -1,29 +1,52 @@
-# Create T3 App
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+# Reddit Clone
 
-## What's next? How do I make an app with this?
+## Overview
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+This implementation is a 1:1 representation of the design in Figma.
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+It utilizes the stack from `create-t3-app` and incorporates the following additional packages:
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+- Clerk: for user management
+- Shadcn: for reusable frontend components, including:
+  - Accordion: to collapse and expand replies under comments
+  - Sonner: for toast notifications
+  - Skeleton: for rendering skeleton layouts while fetching data
+  - Form, Input, Button, Label: for form management
 
-## Learn More
+## How it works
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+Users can view posts from everyone but must be logged in to upvote/downvote or comment.
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+## How to get started
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+There are two options to get started:
 
-## How do I deploy this?
+1. Use the live demo by clicking [this link](https://reddit-clone-mu-eight.vercel.app/).
+2. Self-host the application.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+### Self-Hosting
+
+1. Rename `.env.example` to `.env`.
+
+#### Requirements
+
+- Create an account and application with Clerk, selecting Google as the only option. Once done, obtain your `CLERK_SECRET_KEY` and `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` and replace `<CLERK_SECRET_KEY_HERE>` and `<NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY_HERE>` respectively with their corresponding values.
+- Next, create a database from PlanetScale and replace `<DATABASE_URL_HERE>` with the database URL you obtained from PlanetScale.
+
+#### Setup
+
+1. After setting up Clerk and the database, install all necessary dependencies and packages by running:
+   ```
+   npm install
+   ```
+2. Push the schema to your database by running:
+   ```
+   npx prisma db push
+   ```
+
+#### Running the Application
+
+You should now be able to use the application by running:
+```
+npm run dev
