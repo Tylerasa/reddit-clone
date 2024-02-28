@@ -4,7 +4,7 @@ import { ChevronDown } from "assets/svgs/ChevronDown";
 import { ChevronUp } from "assets/svgs/ChevronUp";
 import { Reply } from "assets/svgs/Reply";
 import Image from "next/image";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Skeleton } from "~/components/ui/skeleton";
 import { RouterOutputs } from "~/trpc/shared";
 import dayjs from "dayjs";
@@ -12,25 +12,28 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import ReplyPost from "../Posts/ReplyPost";
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
 
 dayjs.extend(relativeTime);
 
 type Reply =
   RouterOutputs["post"]["getComments"][number]["comment"]["replies"][number];
 
+type Vote = RouterOutputs["post"]["getAll"][number]["post"]["votes"][number];
+type User = RouterOutputs["post"]["getAll"][number]["author"];
+
 export const ReplyComment = (props: Reply) => {
   const { replies: subReplies, author, ...reply } = props;
 
-  const hasVoted = reply!.votes.find(
-    (vote: { authorId: any }) => vote.authorId === author!.id,
-  );
+  const clerkUser = useUser();
+
+  const [hasVoted, setHasVoted] = useState<Vote | undefined>(undefined);
+  const [optHasVoted, setOptHasVoted] = useState<Vote | undefined>(undefined);
+  const [user, setUser] = useState<User | null>();
 
   const [showReplyForm, setShowReplyForm] = useState(false);
 
   const [replyState, setReplyState] = useState(reply);
-  const [optHasVoted, setOptHasVoted] = useState<number | null>(
-    hasVoted?.value ?? null,
-  );
 
   const router = useRouter();
 
@@ -58,15 +61,25 @@ export const ReplyComment = (props: Reply) => {
     },
   });
 
+  useEffect(() => {
+    if (clerkUser && clerkUser.user) {
+      setHasVoted(
+        reply.votes.find((vote) => vote.authorId === clerkUser.user.id),
+      );
+
+      setUser(user);
+    }
+  }, [clerkUser]);
+
   const handleVote = (value: number) => {
     let newReply = { ...replyState };
 
     // Optimistically update UI
-    if (optHasVoted === value) {
+    if (optHasVoted?.value === value) {
       if (value === 1) {
         newReply.numUpvotes -= 1;
         let existingVoteIndex = newReply.votes.findIndex(
-          (v) => v.value === 1 && v.authorId === author!.id,
+          (v) => v.value === 1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
           newReply.votes.splice(existingVoteIndex, 1);
@@ -74,49 +87,50 @@ export const ReplyComment = (props: Reply) => {
       } else {
         newReply.numDownvotes -= 1;
         let existingVoteIndex = newReply.votes.findIndex(
-          (v) => v.value === -1 && v.authorId === author!.id,
+          (v) => v.value === -1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
           newReply.votes.splice(existingVoteIndex, 1);
         }
       }
-      setOptHasVoted(null);
+      setOptHasVoted(undefined);
     } else {
+      let newVote = {
+        id: Math.random(),
+        commentId: Math.random(),
+        postId: Math.random(),
+        authorId: clerkUser.user!.id,
+        value,
+      };
       if (value === 1) {
         let existingVoteIndex = newReply.votes.findIndex(
-          (v) => v.value === -1 && v.authorId === author!.id,
+          (v) => v.value === -1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
-          newReply.numDownvotes -= 1;
+          if (newReply.numUpvotes - newReply.numDownvotes !== 0) {
+            newReply.numDownvotes -= 1;
+          }
           newReply.votes.splice(existingVoteIndex, 1);
         }
 
         newReply.numUpvotes += 1;
-        newReply.votes.push({
-          id: Math.random(),
-          commentId: Math.random(),
-          postId: Math.random(),
-          authorId: author!.id,
-          value: 1,
-        });
+        newVote.value = value;
+        newReply.votes.push(newVote);
       } else {
         let existingVoteIndex = newReply.votes.findIndex(
-          (v) => v.value === 1 && v.authorId === author!.id,
+          (v) => v.value === 1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
-          newReply.numUpvotes -= 1;
+          if (newReply.numUpvotes - newReply.numDownvotes !== 0) {
+            newReply.numUpvotes -= 1;
+          }
           newReply.votes.splice(existingVoteIndex, 1);
         }
         newReply.numDownvotes += 1;
-        newReply.votes.push({
-          id: Math.random(),
-          commentId: Math.random(),
-          postId: Math.random(),
-          authorId: author!.id,
-          value: -1,
-        });
+        newVote.value = value;
+        newReply.votes.push(newVote);
       }
-      setOptHasVoted(value);
+      setOptHasVoted(newVote);
     }
 
     setReplyState(newReply);
@@ -166,19 +180,26 @@ export const ReplyComment = (props: Reply) => {
             </p>
           </div>
 
-          <p className="text-sm leading-[20px] text-gray-800">{replyState.text}</p>
+          <p className="text-sm leading-[20px] text-gray-800">
+            {replyState.text}
+          </p>
 
           <div className="mt-3 flex items-center gap-2 text-sm text-gray-700">
             <ChevronUp
               onClick={() => handleVote(1)}
-              className={`: cursor-pointer hover:stroke-indigo-600
-          ${optHasVoted === 1 ? "stroke-indigo-600 " : "stroke-gray-700"}
-          `}
+              className={`cursor-pointer hover:stroke-indigo-600
+              ${optHasVoted?.value === 1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+              `}
             />
             <span className="font-medium text-gray-800">
               {replyState.numUpvotes - replyState.numDownvotes}
             </span>
-            <ChevronDown className="cursor-pointer stroke-gray-700 hover:stroke-indigo-600" />
+            <ChevronDown
+              onClick={() => handleVote(-1)}
+              className={`cursor-pointer hover:stroke-indigo-600
+            ${optHasVoted?.value === -1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+            `}
+            />
             <div
               onClick={() => setShowReplyForm(!showReplyForm)}
               className="hov-but flex cursor-pointer items-center gap-2"
