@@ -11,25 +11,25 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { toSnakeCase } from "~/helpers/snake-case";
-import { useState } from "react";
-import { clerkClient, redirectToSignIn, useClerk, useUser } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 
 dayjs.extend(relativeTime);
 
 type PostWithUser = RouterOutputs["post"]["getAll"][number];
-type Vote = RouterOutputs["post"]["getAll"][number]["post"]["votes"];
+type Vote = RouterOutputs["post"]["getAll"][number]["post"]["votes"][number];
+type User = RouterOutputs["post"]["getAll"][number]["author"];
 
 export const SingleFeedPost = (props: PostWithUser) => {
   const { author, post } = props;
-  const user = useUser();
+  const clerkUser = useUser();
 
-  const hasVoted = post.votes.find((vote) => vote.authorId === author.id);
 
   const [postState, setPostState] = useState(post);
-  const [optHasVoted, setOptHasVoted] = useState<number | null>(
-    hasVoted?.value ?? null,
-  );
+  const [hasVoted, setHasVoted] = useState<Vote | undefined>(undefined);
+  const [optHasVoted, setOptHasVoted] = useState<Vote | undefined>(undefined);
+  const [user, setUser] = useState<User | null>();
 
   const router = useRouter();
 
@@ -57,74 +57,90 @@ export const SingleFeedPost = (props: PostWithUser) => {
     },
   });
 
+  useEffect(() => {
+    if (clerkUser && clerkUser.user) {
+      setHasVoted(
+        post.votes.find((vote) => vote.authorId === clerkUser.user.id),
+      );
 
+      setUser(user);
+    }
+  }, [clerkUser]);
+
+  useEffect(() => {
+    setOptHasVoted(hasVoted);
+  }, [clerkUser, hasVoted]);
 
 
   const handleVote = (value: number) => {
-    if (!user.user || !user.isSignedIn) {
-      toast("Sign in to upvote or down"
-      
-      );
+    if (!clerkUser.user || !clerkUser.isSignedIn) {
+      toast("Sign in to upvote or down");
       return;
     }
+
     let newPost = { ...postState };
 
     // Optimistically update UI
-    if (optHasVoted === value) {
+    if (optHasVoted?.value === value) {
       if (value === 1) {
         newPost.numUpvotes -= 1;
         let existingVoteIndex = newPost.votes.findIndex(
-          (v) => v.value === 1 && v.authorId === author.id,
+          (v) => v.value === 1 && v.authorId === clerkUser.user.id,
         );
         if (existingVoteIndex !== -1) {
           newPost.votes.splice(existingVoteIndex, 1);
         }
       } else {
+        // if(newPost.numUpvotes - newPost.numDownvotes)
         newPost.numDownvotes -= 1;
         let existingVoteIndex = newPost.votes.findIndex(
-          (v) => v.value === -1 && v.authorId === author.id,
+          (v) => v.value === -1 && v.authorId === clerkUser.user.id,
         );
         if (existingVoteIndex !== -1) {
           newPost.votes.splice(existingVoteIndex, 1);
         }
       }
-      setOptHasVoted(null);
+      setOptHasVoted(undefined);
     } else {
+      let newVote = {
+        id: Math.random(),
+        commentId: Math.random(),
+        postId: Math.random(),
+        authorId: clerkUser.user.id,
+        value,
+      };
       if (value === 1) {
         let existingVoteIndex = newPost.votes.findIndex(
-          (v) => v.value === -1 && v.authorId === author.id,
+          (v) => v.value === -1 && v.authorId === clerkUser.user.id,
         );
         if (existingVoteIndex !== -1) {
-          newPost.numDownvotes -= 1;
+          // newPost.numDownvotes -= 1;
+
+          if (newPost.numUpvotes - newPost.numDownvotes !== 0) {
+            newPost.numDownvotes -= 1;
+          }
           newPost.votes.splice(existingVoteIndex, 1);
         }
 
         newPost.numUpvotes += 1;
-        newPost.votes.push({
-          id: Math.random(),
-          commentId: Math.random(),
-          postId: Math.random(),
-          authorId: author.id,
-          value: 1,
-        });
+        newVote.value = value;
+
+        newPost.votes.push(newVote);
       } else {
         let existingVoteIndex = newPost.votes.findIndex(
-          (v) => v.value === 1 && v.authorId === author.id,
+          (v) => v.value === 1 && v.authorId === clerkUser.user.id,
         );
         if (existingVoteIndex !== -1) {
-          newPost.numUpvotes -= 1;
+          if (newPost.numUpvotes - newPost.numDownvotes !== 0) {
+            newPost.numUpvotes -= 1;
+          }
           newPost.votes.splice(existingVoteIndex, 1);
         }
         newPost.numDownvotes += 1;
-        newPost.votes.push({
-          id: Math.random(),
-          commentId: Math.random(),
-          postId: Math.random(),
-          authorId: author.id,
-          value: -1,
-        });
+        newVote.value = value;
+        newPost.votes.push(newVote);
       }
-      setOptHasVoted(value);
+      setOptHasVoted(newVote);
     }
 
     setPostState(newPost);
@@ -154,8 +170,8 @@ export const SingleFeedPost = (props: PostWithUser) => {
           <div className="flex h-6 items-center">
             <ChevronUp
               onClick={() => handleVote(1)}
-              className={`: cursor-pointer hover:stroke-indigo-600
-          ${optHasVoted === 1 ? "stroke-indigo-600 " : "stroke-gray-700"}
+              className={`cursor-pointer hover:stroke-indigo-600
+          ${optHasVoted?.value === 1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
           `}
             />
           </div>
@@ -166,8 +182,8 @@ export const SingleFeedPost = (props: PostWithUser) => {
           <div className="flex h-6 items-center">
             <ChevronDown
               onClick={() => handleVote(-1)}
-              className={`: cursor-pointer hover:stroke-indigo-600
-            ${optHasVoted === -1 ? "stroke-indigo-600 " : "stroke-gray-700"}
+              className={`cursor-pointer hover:stroke-indigo-600
+            ${optHasVoted?.value === -1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
             `}
             />
           </div>
