@@ -19,25 +19,26 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import { useUser } from "@clerk/nextjs";
 
 dayjs.extend(relativeTime);
 
 type Comment = RouterOutputs["post"]["getComments"][number];
 type Reply =
   RouterOutputs["post"]["getComments"][number]["comment"]["replies"][number];
+type Vote = RouterOutputs["post"]["getAll"][number]["post"]["votes"][number];
+type User = RouterOutputs["post"]["getAll"][number]["author"];
 
 export const CommentPost = (props: Comment) => {
   const { comment, author } = props;
-
-  const hasVoted = comment!.votes.find(
-    (vote: { authorId: any }) => vote.authorId === author.id,
-  );
+  const clerkUser = useUser();
 
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [commentState, setCommentState] = useState(comment);
-  const [optHasVoted, setOptHasVoted] = useState<number | null>(
-    hasVoted?.value ?? null,
-  );
+  const [optHasVoted, setOptHasVoted] = useState<Vote | undefined>(undefined);
+  const [hasVoted, setHasVoted] = useState<Vote | undefined>(undefined);
+
+  const [user, setUser] = useState<User | null>();
 
   const ref = useRef<HTMLButtonElement>(null);
   const router = useRouter();
@@ -67,14 +68,28 @@ export const CommentPost = (props: Comment) => {
   });
 
   useEffect(() => {
+    if (clerkUser && clerkUser.user) {
+      setHasVoted(
+        comment.votes.find((vote) => vote.authorId === clerkUser.user.id),
+      );
+
+      setUser(user);
+    }
+  }, [clerkUser]);
+
+  useEffect(() => {
     setCommentState(comment);
   }, [comment]);
+
+  useEffect(() => {
+    setOptHasVoted(hasVoted);
+  }, [clerkUser, hasVoted]);
 
   const handleVote = (value: number) => {
     let newComment = { ...commentState };
 
     // Optimistically update UI
-    if (optHasVoted === value) {
+    if (optHasVoted?.value === value) {
       if (value === 1) {
         newComment.numUpvotes -= 1;
         let existingVoteIndex = newComment.votes.findIndex(
@@ -92,43 +107,45 @@ export const CommentPost = (props: Comment) => {
           newComment.votes.splice(existingVoteIndex, 1);
         }
       }
-      setOptHasVoted(null);
+      setOptHasVoted(undefined);
     } else {
+      let newVote = {
+        id: Math.random(),
+        commentId: Math.random(),
+        postId: Math.random(),
+        authorId: clerkUser.user!.id,
+        value,
+      };
       if (value === 1) {
         let existingVoteIndex = newComment.votes.findIndex(
-          (v) => v.value === -1 && v.authorId === author.id,
+          (v) => v.value === -1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
-          newComment.numDownvotes -= 1;
+          if (newComment.numUpvotes - newComment.numDownvotes !== 0) {
+            newComment.numDownvotes -= 1;
+          }
           newComment.votes.splice(existingVoteIndex, 1);
         }
 
         newComment.numUpvotes += 1;
-        newComment.votes.push({
-          id: Math.random(),
-          commentId: Math.random(),
-          postId: Math.random(),
-          authorId: author.id,
-          value: 1,
-        });
+        newVote.value = value;
+
+        newComment.votes.push(newVote);
       } else {
         let existingVoteIndex = newComment.votes.findIndex(
-          (v) => v.value === 1 && v.authorId === author.id,
+          (v) => v.value === 1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
-          newComment.numUpvotes -= 1;
+          if (newComment.numUpvotes - newComment.numDownvotes !== 0) {
+            newComment.numUpvotes -= 1;
+          }
           newComment.votes.splice(existingVoteIndex, 1);
         }
         newComment.numDownvotes += 1;
-        newComment.votes.push({
-          id: Math.random(),
-          commentId: Math.random(),
-          postId: Math.random(),
-          authorId: author.id,
-          value: -1,
-        });
+        newVote.value = value;
+        newComment.votes.push(newVote);
       }
-      setOptHasVoted(value);
+      setOptHasVoted(newVote);
     }
 
     setCommentState(newComment);
@@ -199,18 +216,18 @@ export const CommentPost = (props: Comment) => {
               <div className="flex items-center gap-2 text-sm text-gray-700">
                 <ChevronUp
                   onClick={() => handleVote(1)}
-                  className={`: cursor-pointer hover:stroke-indigo-600
-          ${optHasVoted === 1 ? "stroke-indigo-600 " : "stroke-gray-700"}
-          `}
+                  className={`cursor-pointer hover:stroke-indigo-600
+                  ${optHasVoted?.value === 1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+                  `}
                 />
                 <span className="font-medium text-gray-800">
                   {commentState.numUpvotes - commentState.numDownvotes}
                 </span>
                 <ChevronDown
                   onClick={() => handleVote(-1)}
-                  className={`: cursor-pointer hover:stroke-indigo-600
-          ${optHasVoted === -1 ? "stroke-indigo-600 " : "stroke-gray-700"}
-          `}
+                  className={`cursor-pointer hover:stroke-indigo-600
+                  ${optHasVoted?.value === -1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+                  `}
                 />
                 <div
                   onClick={handleReplyClick}
