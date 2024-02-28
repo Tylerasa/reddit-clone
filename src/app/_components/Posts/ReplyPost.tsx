@@ -27,7 +27,7 @@ const ReplyPost = (props: {
   const comment = api.post.comment.useMutation({
     onSuccess: () => {
       setText("");
-      utils.post.getComments.invalidate({ postId });
+      void utils.post.getComments.invalidate({ postId });
       router.refresh();
     },
   });

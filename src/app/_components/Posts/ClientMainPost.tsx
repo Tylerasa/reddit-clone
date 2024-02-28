@@ -51,7 +51,7 @@ const ClientMainPost = (props: PostWithUser) => {
     },
   });
   useEffect(() => {
-    if (clerkUser && clerkUser.user) {
+    if (clerkUser?.user) {
       setHasVoted(
         post.votes.find((vote) => vote.authorId === clerkUser.user.id),
       );
@@ -65,13 +65,13 @@ const ClientMainPost = (props: PostWithUser) => {
   }, [clerkUser, hasVoted]);
 
   const handleVote = (value: number) => {
-    let newPost = { ...postState };
+    const newPost = { ...postState };
 
     // Optimistically update UI
     if (optHasVoted?.value === value) {
       if (value === 1) {
         newPost.numUpvotes -= 1;
-        let existingVoteIndex = newPost.votes.findIndex(
+        const existingVoteIndex = newPost.votes.findIndex(
           (v) => v.value === 1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -79,7 +79,7 @@ const ClientMainPost = (props: PostWithUser) => {
         }
       } else {
         newPost.numDownvotes -= 1;
-        let existingVoteIndex = newPost.votes.findIndex(
+        const existingVoteIndex = newPost.votes.findIndex(
           (v) => v.value === -1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -88,7 +88,7 @@ const ClientMainPost = (props: PostWithUser) => {
       }
       setOptHasVoted(undefined);
     } else {
-      let newVote = {
+      const newVote = {
         id: Math.random(),
         commentId: Math.random(),
         postId: Math.random(),
@@ -96,7 +96,7 @@ const ClientMainPost = (props: PostWithUser) => {
         value,
       };
       if (value === 1) {
-        let existingVoteIndex = newPost.votes.findIndex(
+        const existingVoteIndex = newPost.votes.findIndex(
           (v) => v.value === -1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -111,7 +111,7 @@ const ClientMainPost = (props: PostWithUser) => {
 
         newPost.votes.push(newVote);
       } else {
-        let existingVoteIndex = newPost.votes.findIndex(
+        const existingVoteIndex = newPost.votes.findIndex(
           (v) => v.value === 1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -132,16 +132,16 @@ const ClientMainPost = (props: PostWithUser) => {
     if (hasVoted?.value === value) {
       // Remove vote
       if (value === 1) {
-        return removeUpVote.mutate({ postId: post!.id });
+        return removeUpVote.mutate({ postId: post.id });
       } else {
-        return removeDownVote.mutate({ postId: post!.id });
+        return removeDownVote.mutate({ postId: post.id });
       }
     } else {
       // Add vote
       if (value === 1) {
-        return addUpVote.mutate({ postId: post!.id });
+        return addUpVote.mutate({ postId: post.id });
       } else {
-        return addDownVote.mutate({ postId: post!.id });
+        return addDownVote.mutate({ postId: post.id });
       }
     }
   };
@@ -154,7 +154,7 @@ const ClientMainPost = (props: PostWithUser) => {
             <ChevronUp
               onClick={() => handleVote(1)}
               className={`cursor-pointer hover:stroke-indigo-600
-              ${optHasVoted?.value === 1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+              ${optHasVoted?.value === 1 && optHasVoted.authorId === (clerkUser?.user?.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
               `}
             />
             <span className="font-medium text-gray-800">
@@ -163,14 +163,14 @@ const ClientMainPost = (props: PostWithUser) => {
             <ChevronDown
               onClick={() => handleVote(-1)}
               className={`cursor-pointer hover:stroke-indigo-600
-            ${optHasVoted?.value === -1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+            ${optHasVoted?.value === -1 && optHasVoted.authorId === (clerkUser?.user?.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
             `}
             />
           </div>
         </div>
         <div className="flex flex-col gap-[6px]">
           <div className="flex items-center gap-[6px]">
-            {author && author.imageUrl ? (
+            {author?.imageUrl ? (
               <Image
                 src={author.imageUrl}
                 alt={`picture of ${author.username}`}

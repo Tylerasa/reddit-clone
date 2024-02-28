@@ -14,7 +14,7 @@ function CommentFeed() {
     postId: id,
   });
 
-  const comments = data as Comment;
+  const comments = data;
 
   return (
     <>
@@ -33,7 +33,7 @@ function CommentFeed() {
           ))}
         </div>
       )}
-      {!isLoading && comments.length === 0 ? (
+      {!isLoading && comments?.length === 0 ? (
         <p className="text-center text-sm text-gray-700 ">No comments under this post...</p>
       ) : null}
     </>

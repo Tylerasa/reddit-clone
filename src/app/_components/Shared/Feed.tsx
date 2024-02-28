@@ -23,8 +23,7 @@ function Feed() {
     <>
       {!isLoading && posts ? (
         <div className="">
-          {posts &&
-            posts.map((post) => <SingleFeedPost {...post} key={post.post.id} />)}
+          {posts?.map((post) => <SingleFeedPost {...post} key={post.post.id} />)}
         </div>
       ) : (
         <div className="">

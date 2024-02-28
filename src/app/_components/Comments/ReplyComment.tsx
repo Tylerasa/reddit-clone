@@ -62,7 +62,7 @@ export const ReplyComment = (props: Reply) => {
   });
 
   useEffect(() => {
-    if (clerkUser && clerkUser.user) {
+    if (clerkUser?.user) {
       setHasVoted(
         reply.votes.find((vote) => vote.authorId === clerkUser.user.id),
       );
@@ -72,13 +72,13 @@ export const ReplyComment = (props: Reply) => {
   }, [clerkUser]);
 
   const handleVote = (value: number) => {
-    let newReply = { ...replyState };
+    const newReply = { ...replyState };
 
     // Optimistically update UI
     if (optHasVoted?.value === value) {
       if (value === 1) {
         newReply.numUpvotes -= 1;
-        let existingVoteIndex = newReply.votes.findIndex(
+        const existingVoteIndex = newReply.votes.findIndex(
           (v) => v.value === 1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -86,7 +86,7 @@ export const ReplyComment = (props: Reply) => {
         }
       } else {
         newReply.numDownvotes -= 1;
-        let existingVoteIndex = newReply.votes.findIndex(
+        const existingVoteIndex = newReply.votes.findIndex(
           (v) => v.value === -1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -95,7 +95,7 @@ export const ReplyComment = (props: Reply) => {
       }
       setOptHasVoted(undefined);
     } else {
-      let newVote = {
+      const newVote = {
         id: Math.random(),
         commentId: Math.random(),
         postId: Math.random(),
@@ -103,7 +103,7 @@ export const ReplyComment = (props: Reply) => {
         value,
       };
       if (value === 1) {
-        let existingVoteIndex = newReply.votes.findIndex(
+        const existingVoteIndex = newReply.votes.findIndex(
           (v) => v.value === -1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -117,7 +117,7 @@ export const ReplyComment = (props: Reply) => {
         newVote.value = value;
         newReply.votes.push(newVote);
       } else {
-        let existingVoteIndex = newReply.votes.findIndex(
+        const existingVoteIndex = newReply.votes.findIndex(
           (v) => v.value === 1 && v.authorId === clerkUser.user!.id,
         );
         if (existingVoteIndex !== -1) {
@@ -138,16 +138,16 @@ export const ReplyComment = (props: Reply) => {
     if (hasVoted?.value === value) {
       // Remove vote
       if (value === 1) {
-        return removeUpVoteComment.mutate({ commentId: reply!.id });
+        return removeUpVoteComment.mutate({ commentId: reply.id });
       } else {
-        return removeDownVoteComment.mutate({ commentId: reply!.id });
+        return removeDownVoteComment.mutate({ commentId: reply.id });
       }
     } else {
       // Add vote
       if (value === 1) {
-        return addUpVoteComment.mutate({ commentId: reply!.id });
+        return addUpVoteComment.mutate({ commentId: reply.id });
       } else {
-        return addDownVoteComment.mutate({ commentId: reply!.id });
+        return addDownVoteComment.mutate({ commentId: reply.id });
       }
     }
   };
@@ -157,7 +157,7 @@ export const ReplyComment = (props: Reply) => {
       <div className="flex w-full gap-4">
         <div className="flex flex-col gap-[6px]">
           <div className="flex items-center gap-[6px]">
-            {author && author.imageUrl ? (
+            {author?.imageUrl ? (
               <Image
                 src={author.imageUrl}
                 alt={`picture of ${author.username}`}
@@ -188,7 +188,7 @@ export const ReplyComment = (props: Reply) => {
             <ChevronUp
               onClick={() => handleVote(1)}
               className={`cursor-pointer hover:stroke-indigo-600
-              ${optHasVoted?.value === 1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+              ${optHasVoted?.value === 1 && optHasVoted.authorId === (clerkUser?.user?.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
               `}
             />
             <span className="font-medium text-gray-800">
@@ -197,7 +197,7 @@ export const ReplyComment = (props: Reply) => {
             <ChevronDown
               onClick={() => handleVote(-1)}
               className={`cursor-pointer hover:stroke-indigo-600
-            ${optHasVoted?.value === -1 && optHasVoted.authorId === (clerkUser && clerkUser.user && clerkUser.user.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
+            ${optHasVoted?.value === -1 && optHasVoted.authorId === (clerkUser?.user?.id ? clerkUser.user.id : null) ? "stroke-indigo-600 " : "stroke-gray-700"}
             `}
             />
             <div

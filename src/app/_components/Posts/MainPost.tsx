@@ -15,7 +15,7 @@ function MainPost() {
   const id = Number(params.id);
 
   const { data, isLoading } = api.post.getSinglePost.useQuery({ postId: id });
-  let dt = data as PostWithUser;
+  const dt = data as PostWithUser;
   if (isLoading || !data) return <MainPostSkeleton />;
 
   return <ClientMainPost {...dt} />;
