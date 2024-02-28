@@ -18,10 +18,16 @@ const SideNav = () => {
       <div className="flex flex-1 flex-col gap-1">
         <Link
           href={"/"}
-          className={`hov-but  flex w-full items-center gap-4 rounded-xl ${pathname !== "/my-posts" ? "bg-gray-50 " : ""} px-4 py-3 text-indigo-500 hover:bg-gray-50`}
+          className={`hov-but  flex w-full items-center gap-4 rounded-xl ${pathname !== "/my-posts" ? "bg-gray-50 " : ""} px-4 py-3 hover:bg-gray-50`}
         >
-          <Home className="h-5 w-5 stroke-indigo-600" />
-          <span>Home</span>
+          <Home
+            className={`h-5 w-5 ${pathname !== "/my-posts" ? "stroke-indigo-600" : "stroke-[#4B5563]"}`}
+          />
+          <span
+            className={`${pathname !== "/my-posts" ? "text-indigo-500 " : ""} `}
+          >
+            Home
+          </span>
         </Link>
         <CheckAuthStatusNav />
       </div>
