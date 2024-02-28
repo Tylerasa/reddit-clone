@@ -7,6 +7,7 @@ import Image from "next/image";
 import CheckAuthStatusFeed from "./_components/CheckAuthStatuFeed";
 import { RouterOutputs } from "~/trpc/shared";
 import Feed from "./_components/Shared/Feed";
+import ServerFeed from "./_components/Shared/ServerFeed";
 
 export default async function Home() {
   noStore();
@@ -15,7 +16,9 @@ export default async function Home() {
     <main className="feed h-screen w-screen overflow-y-auto pb-10">
       <div className="w-[37.5rem]">
         <CheckAuthStatusFeed />
-        <Feed />
+        {/* <Feed /> */}
+        {/* using the server feed because it updates faster */}
+        <ServerFeed/>
       </div>
     </main>
   );
