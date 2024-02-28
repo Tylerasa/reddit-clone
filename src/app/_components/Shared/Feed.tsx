@@ -1,20 +1,30 @@
-import React from "react";
-import { api } from "~/trpc/server";
+//load slower but handle updates for other users
+
+"use client"
+import React, { useEffect, useState } from "react";
+// import { api } from "~/trpc/server";
 import {
   SingleFeedPost,
   SkeletonSingleFeedPost,
 } from "../Posts/SingleFeedPost";
+import { api } from "~/trpc/react";
+import { RouterOutputs } from "~/trpc/shared";
 
-async function Feed() {
-  const posts = await api.post.getAll.query();
+type PostWithUser = RouterOutputs["post"]["getAll"];
 
+function Feed() {
+  const { data, isLoading } = api.post.getAll.useQuery();
+  const [posts, setPosts] = useState<PostWithUser>();
+
+  useEffect(() => {
+    setPosts(data);
+  }, [data, isLoading]);
   return (
     <>
-      {posts ? (
+      {!isLoading && posts ? (
         <div className="">
-          {posts.map((post) => (
-            <SingleFeedPost {...post} key={post.post.id} />
-          ))}
+          {posts &&
+            posts.map((post) => <SingleFeedPost {...post} key={post.post.id} />)}
         </div>
       ) : (
         <div className="">
@@ -24,7 +34,7 @@ async function Feed() {
         </div>
       )}
 
-      {posts && posts.length === 0 ? (
+      {!isLoading && data && data.length === 0 ? (
         <p className="pt-4 text-center text-sm text-gray-700 ">
           No posts yet...
         </p>
