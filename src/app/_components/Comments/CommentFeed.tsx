@@ -23,7 +23,7 @@ function CommentFeed() {
           {comments
             .filter((c) => !c.comment.parentId)
             .map((comment) => (
-              <CommentPost {...comment} />
+              <CommentPost {...comment} key={comment.comment.id} />
             ))}
         </div>
       ) : (
