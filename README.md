@@ -3,9 +3,9 @@
 
 ## Overview
 
-This implementation is a 1:1 representation of the design in Figma.
 
-It utilizes the stack from `create-t3-app` and incorporates the following additional packages:
+
+This utilizes the stack from `create-t3-app` and incorporates the following additional packages:
 
 - Clerk: for user management
 - Shadcn: for reusable frontend components, including:
